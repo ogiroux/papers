@@ -2,6 +2,7 @@
 	PxxxxR0
 **Author:**
 	Olivier Giroux (ogiroux@nvidia.com)
+	Thomas Rodgers (trodgers@redhat.com)
 **Audience:**
 	SG1
 
@@ -30,6 +31,8 @@ The following is a grossly priority-ordered list of requests that users and impl
 > The primary purpose of this facility is to make it easier to implement other concurrency facilities, but often these other facilities expose timed waiting facilities themselves. Without timed versions of `wait`, the programmer is left to ad-hoc solutions for timed waiting facilities, and perhaps even all waiting facilities. Anecdotally, at least two implementations of C++20 have added internal timed versions of this facility to implement `<semaphore>`.
 >
 > Adding timed versions of `atomic::wait` removes hurdles to adoption of this facility for its intended purpose.
+>
+> Adding timed versions of `atomic::wait` will require a discussion of what facilities from `<chrono>` need to be present in `<atomic>` for freestanding implementations.
 
 2. Return the last observed value from `atomic::wait`.
 
@@ -44,6 +47,8 @@ The following is a grossly priority-ordered list of requests that users and impl
 > When the program is waiting for a condition different from "not equal to", there is an added re-try loop around the `wait` operation in the program. This loop causes *each* call to `wait` to be performed as if it were the *first* call to `wait`, oblivious to the fact that the program has already been waiting for some time. This leads to re-executing the short-term polling strategy.
 >
 > Taking a predicate instead of a value allows us to push the program-defined condition inside of `atomic::wait`, delete the outer loop, and allows the implementation to track time spent.
+>
+> At least two implementations currently implement `atomic::wait` in terms of a wait taking a predicate.
 
   b. Add a hint operand to `wait` to steer the internal strategy.
 
