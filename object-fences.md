@@ -1,7 +1,7 @@
 # Message fences
 
-Document #: D2535R0 <br>
-Date: 2-2-2022 <br>
+Document #: D2535R1 <br>
+Date: 2-6-2022 <br>
 Audience: SG1 <br>
 Reply-to: dlustig@nvidia.com, ogiroux@nvidia.com <br>
 
@@ -11,13 +11,27 @@ Message fences place evaluations on objects into *happens before* but not *stron
 
 ## Tony tables
 
+### Object fences (MP)
+
 | Before      | After |
 | ----------- | ----------- |
 | `x = 1;`<br>`atomic_thread_fence(memory_order_release);`<br>`a.store(1, memory_order_relaxed);`      | `x = 1;`<br>`atomic_object_fence(memory_order_release, x);`<br>`a.store(1, memory_order_relaxed);` |
 | `while(a.load(memory_order_relaxed) != 1);`<br>`atomic_thread_fence(memory_order_acquire);`<br>`assert(x == 1);`      | `while(a.load(memory_order_relaxed) != 1);`<br>`atomic_object_fence(memory_order_acquire, x);`<br>`assert(x == 1);` |
 | (slower)   | (faster)        |
 
+### Message fences (ISA2)
+
+| Before | After |
+|--------|-------|
+| `x = 1;`<br>`atomic_thread_fence(memory_order_release);`<br>`a.store(1, memory_order_relaxed)` | `x = 1;`<br>`atomic_message_fence(memory_order_release);`<br>`a.store(1, memory_order_relaxed);` |
+| `while(a.load(memory_order_relaxed) != 1);`<br>`atomic_thread_fence(memory_order_acquire);`<br>`assert(x == 1);`<br>`atomic_thread_fence(memory_order_release);`<br>`b.store(1, memory_order_relaxed);` | `while(a.load(memory_order_relaxed) != 1);`<br>`atomic_message_fence(memory_order_acquire);`<br>`assert(x == 1);`<br>`atomic_message_fence(memory_order_release);`<br>`b.store(1, memory_order_relaxed);` |
+| `while(b.load(memory_order_relaxed) != 1);`<br>`atomic_thread_fence(memory_order_acquire);`<br>`assert(x == 1);` | `while(b.load(memory_order_relaxed) != 1);`<br>`atomic_message_fence(memory_order_acquire);`<br>`assert(x == 1); // UB` |
+| (correct) | (incorrect) |
+
 ## Revisions
+
+R1
+* Add Tony table for ISA2 with message fences
 
 R0
 * This is the first revision
