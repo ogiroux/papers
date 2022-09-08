@@ -24,9 +24,9 @@ Message fences place evaluations on objects into *happens before* but not *stron
 | Before | After |
 |--------|-------|
 | `x = 1;`<br>`atomic_thread_fence(memory_order_release);`<br>`a.store(1, memory_order_relaxed)` | `x = 1;`<br>`atomic_message_fence(memory_order_release);`<br>`a.store(1, memory_order_relaxed);` |
-| `while(a.load(memory_order_relaxed) != 1);`<br>`atomic_thread_fence(memory_order_acquire);`<br>`assert(x == 1);`<br>`y = 1;`<br>`atomic_thread_fence(memory_order_release);`<br>`b.store(1, memory_order_relaxed);` | `while(a.load(memory_order_relaxed) != 1);`<br>`atomic_message_fence(memory_order_acquire);`<br>`assert(x == 1);`<br>`y = 1;`<br>`atomic_message_fence(memory_order_release);`<br>`b.store(1, memory_order_relaxed);` |
-| `while(b.load(memory_order_relaxed) != 1);`<br>`atomic_thread_fence(memory_order_acquire);`<br>`assert(y == 1);`<br>`assert(x == 1);` | `while(b.load(memory_order_relaxed) != 1);`<br>`atomic_message_fence(memory_order_acquire);`<br>`assert(y == 1);`<br>`// assert(x == 1); // FAIL(Ok)` |
-| (slower) | (faster) |
+| `while(a.load(memory_order_relaxed) != 1);`<br>`atomic_thread_fence(memory_order_acquire);`<br>`assert(x == 1);`<br>`atomic_thread_fence(memory_order_release);`<br>`b.store(1, memory_order_relaxed);` | `while(a.load(memory_order_relaxed) != 1);`<br>`atomic_message_fence(memory_order_acquire);`<br>`assert(x == 1);`<br>`atomic_message_fence(memory_order_release);`<br>`b.store(1, memory_order_relaxed);` |
+| `while(b.load(memory_order_relaxed) != 1);`<br>`atomic_thread_fence(memory_order_acquire);`<br>`assert(x == 1);` | `while(b.load(memory_order_relaxed) != 1);`<br>`atomic_message_fence(memory_order_acquire);`<br>`assert(x == 1); // UB` |
+| (correct) | (incorrect) |
 
 ## Revisions
 
